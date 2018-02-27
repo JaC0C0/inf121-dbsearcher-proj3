@@ -31,6 +31,9 @@ class indexer():
 		self.index = defaultdict(list)
 		self.book_keeping = json.load(open(self.rootDir + '/bookkeeping.json'))
 
+	def get_posting(self, stem_token):
+		return (self.index[stem_token])
+
 	def calculate_tf_idf(self, term_freq, num_doc_term, total_tokens, total_docs):
 		tf = term_freq / total_tokens
 		idf = log10(total_docs/num_doc_term)
@@ -39,8 +42,8 @@ class indexer():
 	#TODO remove
 	def display_dict(self, ddict):
 		for key in ddict:
-			# print("{}: {}".format(key, ddict[key]))
-			print(key)
+			print("{}: {}".format(key, ddict[key]))
+			# print(key)
 
 	def create_index(self):
     	#for debugging
@@ -72,15 +75,15 @@ class indexer():
 							break
 					#no duplicate
 					if (not duplicate):
-						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.index[file_coord])
+						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[file_coord])
 						duplicate = False
 				else:
-					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.index[file_coord])
+					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[file_coord])
 				self.index[stem_token].append(new_post)				
 
-			if count == 3:	#TODO remove
+			if count == 6:	#TODO remove
 				break
-		self.display_dict(self.index)
+		# self.display_dict(self.index)
 
 	
 
