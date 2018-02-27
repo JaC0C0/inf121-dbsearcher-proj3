@@ -1,6 +1,7 @@
 from html.parser import HTMLParser
 from collections import defaultdict, Mapping, namedtuple
 import tokenize, nltk, json, re, os, bs4
+from math import log10
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
@@ -32,6 +33,12 @@ class indexer():
 		self.index = defaultdict(list)
 		self.book_keeping = json.load(open(self.rootDir + '/bookkeeping.json'))
 
+	def calculate_tf_idf(self, term_freq, num_doc_term, total_tokens, total_docs):
+		tf = term_freq / total_tokens
+		idf = log10(total_docs/num_doc_term)
+		return(tf*idf)
+
+	#TODO remove
 	def display_dict(self, ddict):
 		for key in ddict:
 			print("{}: {}".format(key, ddict[key]))
@@ -58,16 +65,18 @@ class indexer():
 						#if duplicate posting, create new posting with incnremented term_freq
 						if old_post.doc_id == "doc{}{}".format(index_pair[0], index_pair[1]):
 							up_term_freq = old_post.term_freq + 1
-							new_post = self.Posting(old_post.doc_id, up_term_freq, old_post.tf_idf, old_post.url)
+							new_post = self.Posting(
+								old_post.doc_id, up_term_freq, self.calculate_tf_idf(
+									up_term_freq, len(self.index[stem_token]), len(tokens), len(self.book_keeping)), old_post.url)
 							old_post = new_post
 							duplicate = True
 							break
 					#no duplicate
 					if (not duplicate):
-						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.index[file_coord])
 						duplicate = False
 				else:
-					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.index[file_coord])
 				
 				self.index[stem_token].append(new_post)
 
@@ -76,8 +85,4 @@ class indexer():
 			self.display_dict(self.index)
 
 	
-if __name__ == "__main__":
-	rootDir = 'WEBPAGES/WEBPAGES_RAW'
-	the_indexer = indexer(rootDir)
-	the_indexer.create_index()
-	print ("Exiting program")
+
