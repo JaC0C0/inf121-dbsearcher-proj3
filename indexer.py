@@ -21,8 +21,6 @@ def namedtuple_with_defaults(typename, field_names, default_values=()):
     T.__new__.__defaults__ = tuple(prototype)
     return T
 
-
-
 class indexer():
 	def __init__(self, rootDir):
 		self.rootDir = rootDir
@@ -41,8 +39,8 @@ class indexer():
 	#TODO remove
 	def display_dict(self, ddict):
 		for key in ddict:
-			print("{}: {}".format(key, ddict[key]))
-			# print(key)
+			# print("{}: {}".format(key, ddict[key]))
+			print(key)
 
 	def create_index(self):
     	#for debugging
@@ -52,13 +50,14 @@ class indexer():
 			count += 1	#TODO remove
 			index_pair = file_coord.split("/")
 			file = open((self.rootDir + "/{}/{}").format(index_pair[0], index_pair[1]))
-			raw = BeautifulSoup(file, 'html.parser').get_text()
+			tree = BeautifulSoup(file, 'html.parser').prettify()
+			raw = BeautifulSoup(tree, 'html.parser').get_text()
 			tokens = word_tokenize(raw)
 			#stemming all tokens
 			for token in tokens:
 				stem_token = self.LS.stem(token)
 				#checks to see if token has other/duplicate postings
-				if len(self.index[stem_token]) > 0:
+				if stem_token in self.index.keys():
 					#Flag to check if duplicate has been found
 					duplicate = False
 					for old_post in self.index[stem_token]:
@@ -68,7 +67,7 @@ class indexer():
 							new_post = self.Posting(
 								old_post.doc_id, up_term_freq, self.calculate_tf_idf(
 									up_term_freq, len(self.index[stem_token]), len(tokens), len(self.book_keeping)), old_post.url)
-							old_post = new_post
+							self.index[stem_token].remove(old_post)
 							duplicate = True
 							break
 					#no duplicate
@@ -77,12 +76,11 @@ class indexer():
 						duplicate = False
 				else:
 					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.index[file_coord])
-				
-				self.index[stem_token].append(new_post)
+				self.index[stem_token].append(new_post)				
 
-			if count == 10:	#TODO remove
+			if count == 3:	#TODO remove
 				break
-			self.display_dict(self.index)
+		self.display_dict(self.index)
 
 	
 
