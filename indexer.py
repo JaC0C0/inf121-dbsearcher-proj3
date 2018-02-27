@@ -29,28 +29,41 @@ class indexer():
 		nltk.download('punkt')
 		self.Posting = namedtuple_with_defaults('Posting', 'doc_id, term_freq, tf_idf, url', ["", 0, 0, ""])
 		self.LS = LancasterStemmer()
-		self.index = defaultdict(int)
+		self.index = defaultdict(list)
 		self.book_keeping = json.load(open(self.rootDir + '/bookkeeping.json'))
 
 	def display_dict(self, ddict):
 		for key in ddict:
 			print("{}: {}".format(key, ddict[key]))
+			# print(key)
 
 	def create_index(self):
     	#for debugging
-		count = 0
-		for line in self.book_keeping:
-			count += 1
-			pair = line.split("/")
-			first = int(pair[0]) 
-			second = int(pair[1])
-			file = open((self.rootDir + "/{}/{}").format(first, second))
+		count = 0	#TODO remove
+		for file_coord in self.book_keeping:
+			count += 1	#TODO remove
+			index_pair = file_coord.split("/")
+			file = open((self.rootDir + "/{}/{}").format(index_pair[0], index_pair[1]))
 			raw = BeautifulSoup(file, 'html.parser').get_text()
 			tokens = word_tokenize(raw)
+
 			for token in tokens:
-				self.index[self.LS.stem(token)] += 1
-				# print(token)
-			if count == 10:
+				stem_token = self.LS.stem(token)
+				if len(self.index[stem_token]) > 0:
+					for old_post in self.index[stem_token]:
+						if old_post.doc_id == "doc{}{}".format(index_pair[0], index_pair[1]):
+							up_term_freq = old_post.term_freq + 1
+							new_post = self.Posting(old_post.doc_id, up_term_freq, old_post.tf_idf, old_post.url)
+							old_post = new_post
+							continue
+						else:
+							new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+				else:
+					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+				
+				self.index[stem_token].append(new_post)
+
+			if count == 10:	#TODO remove
 				break
 			self.display_dict(self.index)
 
