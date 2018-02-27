@@ -40,24 +40,32 @@ class indexer():
 	def create_index(self):
     	#for debugging
 		count = 0	#TODO remove
+		#looping through all files using the bookkeeping index json
 		for file_coord in self.book_keeping:
 			count += 1	#TODO remove
 			index_pair = file_coord.split("/")
 			file = open((self.rootDir + "/{}/{}").format(index_pair[0], index_pair[1]))
 			raw = BeautifulSoup(file, 'html.parser').get_text()
 			tokens = word_tokenize(raw)
-
+			#stemming all tokens
 			for token in tokens:
 				stem_token = self.LS.stem(token)
+				#checks to see if token has other/duplicate postings
 				if len(self.index[stem_token]) > 0:
+					#Flag to check if duplicate has been found
+					duplicate = False
 					for old_post in self.index[stem_token]:
+						#if duplicate posting, create new posting with incnremented term_freq
 						if old_post.doc_id == "doc{}{}".format(index_pair[0], index_pair[1]):
 							up_term_freq = old_post.term_freq + 1
 							new_post = self.Posting(old_post.doc_id, up_term_freq, old_post.tf_idf, old_post.url)
 							old_post = new_post
-							continue
-						else:
-							new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+							duplicate = True
+							break
+					#no duplicate
+					if (not duplicate):
+						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
+						duplicate = False
 				else:
 					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 1, self.index[file_coord])
 				
