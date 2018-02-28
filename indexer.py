@@ -40,10 +40,14 @@ class indexer():
 		return(tf*idf)
 
 	#TODO remove
-	def display_dict(self, ddict):
+	def record_dict(self, ddict):
+		file = open("index_dict.txt", "w")
 		for key in ddict:
-			print("{}: {}".format(key, ddict[key]))
+			file.write("{}:\n".format(key))
+			for post in ddict[key]:
+				file.write("{}\n".format(post))
 			# print(key)
+		file.close()
 
 	def create_index(self):
     	#for debugging
@@ -79,11 +83,12 @@ class indexer():
 						duplicate = False
 				else:
 					new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[file_coord])
-				self.index[stem_token].append(new_post)				
+				self.index[stem_token].append(new_post)
+				self.index[stem_token].sort(key=lambda x:x.tf_idf, reverse=True)			
 
-			if count == 6:	#TODO remove
+			if count == 10:	#TODO remove
 				break
-		# self.display_dict(self.index)
+		self.record_dict(self.index)
 
 	
 

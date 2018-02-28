@@ -19,6 +19,5 @@ def search():
 			print("No results")
 
 if __name__ == "__main__":
-	
 	search()
 	print ("Exiting program")
