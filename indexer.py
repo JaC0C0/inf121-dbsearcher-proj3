@@ -39,14 +39,13 @@ class indexer():
 		idf = log10(total_docs/num_doc_term)
 		return(tf*idf)
 
-	#TODO remove
+	#TODO remove. Function is for debugging
 	def record_dict(self, ddict):
 		file = open("index_dict.txt", "w")
 		for key in ddict:
 			file.write("{}:\n".format(key))
 			for post in ddict[key]:
 				file.write("{}\n".format(post))
-			# print(key)
 		file.close()
 
 	def create_index(self):
@@ -77,7 +76,7 @@ class indexer():
 							self.index[stem_token].remove(old_post)
 							duplicate = True
 							break
-					#no duplicate
+					#no duplicate fouond, therefore create new posting and reset duplicate flag
 					if (not duplicate):
 						new_post = self.Posting("doc{}{}".format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[file_coord])
 						duplicate = False
@@ -88,7 +87,7 @@ class indexer():
 
 			if count == 10:	#TODO remove
 				break
-		self.record_dict(self.index)
+		self.record_dict(self.index)	#TODO remove
 
 	
 

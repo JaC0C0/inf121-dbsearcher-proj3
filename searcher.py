@@ -8,8 +8,6 @@ def search():
 
 	while (True):
 		search_input = input("Search: ")
-		if search_input == "quit":
-			break
 		LS = LancasterStemmer()
 		stem_input = LS.stem(search_input)
 		if the_indexer.get_posting(stem_input):
