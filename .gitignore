@@ -101,3 +101,4 @@ ENV/
 .mypy_cache/
 
 WEBPAGES/
+index_dict.txt
