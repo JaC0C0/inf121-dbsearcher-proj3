@@ -44,8 +44,6 @@ class indexer():
 		file = open("index_dict.txt", "w")
 		for key in ddict:
 			file.write("{}:\n".format(key))
-			for post in ddict[key]:
-				file.write("{}\n".format(post))
 		file.close()
 
 	def create_index(self):
@@ -59,9 +57,11 @@ class indexer():
 			tree = BeautifulSoup(file, 'html.parser').prettify()
 			raw = BeautifulSoup(tree, 'html.parser').get_text()
 			tokens = word_tokenize(raw)
-			#stemming all tokens
 			for token in tokens:
+				#stemming all tokens
 				stem_token = self.LS.stem(token)
+				if not stem_token:
+					break
 				#checks to see if token has other/duplicate postings
 				if stem_token in self.index.keys():
 					#Flag to check if duplicate has been found
