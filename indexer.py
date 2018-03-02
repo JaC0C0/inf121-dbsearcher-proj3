@@ -96,9 +96,6 @@ class indexer():
                         self.index[stem_token].append(new_post)
                         self.index[stem_token].sort(key=lambda x:x.tf_idf, reverse=True)            
 
-            if count == 10:    #TODO remove
-                break
-
         self.record_dict(self.index, count)    #TODO remove
 
     
