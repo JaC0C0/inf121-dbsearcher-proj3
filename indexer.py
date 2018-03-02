@@ -61,24 +61,26 @@ class indexer():
                 raw = BeautifulSoup(tree, 'html.parser').get_text()
                 tokens = word_tokenize(raw)
                 for token in tokens:
-                    #stemming all tokens
-                    stem_token = self.LS.stem(token)
-                    if not stem_token:
-                        break
-
                     # remove special characters and split at the resulting whitespace
-                    for split_token in stem_token.translate(special_char_table).split():
+                    split_tokens = token.translate(special_char_table).split()
+                    for split_token in split_tokens:
+
+                        #stemming all tokens
+                        stem_token = self.LS.stem(split_token)
+                        if not stem_token:
+                            continue
+
                         #checks to see if token has other/duplicate postings
-                        if split_token in self.index.keys():
+                        if stem_token in self.index.keys():
                             #Flag to check if duplicate has been found
                             duplicate = False
-                            for old_post in self.index[split_token]:
+                            for old_post in self.index[stem_token]:
                                 #if duplicate posting, create new posting with incnremented term_freq
                                 if old_post.doc_id == doc_id_string.format(index_pair[0], index_pair[1]):
                                     up_term_freq = old_post.term_freq + 1
-                                    tf_idf = self.calculate_tf_idf(up_term_freq, len(self.index[split_token]), len(tokens), len(self.book_keeping))
+                                    tf_idf = self.calculate_tf_idf(up_term_freq, len(self.index[stem_token]), len(tokens) + len(split_tokens) - 1, len(self.book_keeping))
                                     new_post = self.Posting(old_post.doc_id, up_term_freq, tf_idf, old_post.url)
-                                    self.index[split_token].remove(old_post)
+                                    self.index[stem_token].remove(old_post)
                                     duplicate = True
                                     break
                             #no duplicate fouond, therefore create new posting and reset duplicate flag
@@ -87,12 +89,12 @@ class indexer():
                                 duplicate = False
                         else:
                             new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
-                        self.index[split_token].append(new_post)
-                        self.index[split_token].sort(key=lambda x:x.tf_idf, reverse=True)            
+                        self.index[stem_token].append(new_post)
+                        self.index[stem_token].sort(key=lambda x:x.tf_idf, reverse=True)            
 
-            #if count == 10:    #TODO remove
-            #    break
-        #self.record_dict(self.index)    #TODO remove
+            if count == 10:    #TODO remove
+                break
+        self.record_dict(self.index)    #TODO remove
 
     
 
