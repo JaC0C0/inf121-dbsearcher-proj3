@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 from collections import defaultdict, Mapping, namedtuple
-import tokenize, nltk, json, re, os, bs4
+import tokenize, nltk, json, re, os, bs4, string
 from math import log10
 from bs4 import BeautifulSoup
 from nltk import word_tokenize
@@ -48,6 +48,8 @@ class indexer():
 
     def create_index(self):
         doc_id_string = "{}.{}"
+        special_char_table = str.maketrans(string.punctuation, " " * len(string.punctuation))
+
         #for debugging
         count = 0    #TODO remove
         #looping through all infiles using the bookkeeping index json
@@ -63,29 +65,32 @@ class indexer():
                     stem_token = self.LS.stem(token)
                     if not stem_token:
                         break
-                    #checks to see if token has other/duplicate postings
-                    if stem_token in self.index.keys():
-                        #Flag to check if duplicate has been found
-                        duplicate = False
-                        for old_post in self.index[stem_token]:
-                            #if duplicate posting, create new posting with incnremented term_freq
-                            if old_post.doc_id == doc_id_string.format(index_pair[0], index_pair[1]):
-                                up_term_freq = old_post.term_freq + 1
-                                tf_idf = self.calculate_tf_idf(up_term_freq, len(self.index[stem_token]), len(tokens), len(self.book_keeping))
-                                new_post = self.Posting(old_post.doc_id, up_term_freq, tf_idf, old_post.url)
-                                self.index[stem_token].remove(old_post)
-                                duplicate = True
-                                break
-                        #no duplicate fouond, therefore create new posting and reset duplicate flag
-                        if (not duplicate):
-                            new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
-                            duplicate = False
-                    else:
-                        new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
-                    self.index[stem_token].append(new_post)
-                    self.index[stem_token].sort(key=lambda x:x.tf_idf, reverse=True)            
 
-            #if count == 20:    #TODO remove
+                    # remove special characters and split at the resulting whitespace
+                    for split_token in stem_token.translate(special_char_table).split():
+                        #checks to see if token has other/duplicate postings
+                        if split_token in self.index.keys():
+                            #Flag to check if duplicate has been found
+                            duplicate = False
+                            for old_post in self.index[split_token]:
+                                #if duplicate posting, create new posting with incnremented term_freq
+                                if old_post.doc_id == doc_id_string.format(index_pair[0], index_pair[1]):
+                                    up_term_freq = old_post.term_freq + 1
+                                    tf_idf = self.calculate_tf_idf(up_term_freq, len(self.index[split_token]), len(tokens), len(self.book_keeping))
+                                    new_post = self.Posting(old_post.doc_id, up_term_freq, tf_idf, old_post.url)
+                                    self.index[split_token].remove(old_post)
+                                    duplicate = True
+                                    break
+                            #no duplicate fouond, therefore create new posting and reset duplicate flag
+                            if not duplicate:
+                                new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
+                                duplicate = False
+                        else:
+                            new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
+                        self.index[split_token].append(new_post)
+                        self.index[split_token].sort(key=lambda x:x.tf_idf, reverse=True)            
+
+            #if count == 10:    #TODO remove
             #    break
         #self.record_dict(self.index)    #TODO remove
 
