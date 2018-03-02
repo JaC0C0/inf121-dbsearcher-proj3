@@ -40,10 +40,14 @@ class indexer():
         return(tf*idf)
 
     #TODO remove. Function is for debugging
-    def record_dict(self, ddict):
+    def record_dict(self, ddict, count):
         infile = open("index_dict.txt", "w")
+        infile.write("Total document count: {}\n".format(count))
         for key in ddict:
-            infile.write("{}:\n".format(key))
+            infile.write("{}: ".format(key))
+            for post in ddict[key]:
+            	infile.write("DocID: [{}] ".format(post.doc_id))
+            infile.write("\n")
         infile.close()
 
     def create_index(self):
@@ -94,7 +98,8 @@ class indexer():
 
             if count == 10:    #TODO remove
                 break
-        self.record_dict(self.index)    #TODO remove
+
+        self.record_dict(self.index, count)    #TODO remove
 
     
 
