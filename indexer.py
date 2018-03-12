@@ -39,26 +39,12 @@ class indexer():
         idf = log10(total_docs/num_doc_term)
         return(tf*idf)
 
-    #TODO remove. Function is for debugging
-    def record_dict(self, ddict, count):
-        infile = open("index_dict.txt", "w")
-        infile.write("Total document count: {}\n".format(count))
-        for key in ddict:
-            infile.write("{}: ".format(key))
-            for post in ddict[key]:
-            	infile.write("DocID: [{}] ".format(post.doc_id))
-            infile.write("\n")
-        infile.close()
-
     def create_index(self):
         doc_id_string = "{}.{}"
         special_char_table = str.maketrans(string.punctuation, " " * len(string.punctuation))
 
-        #for debugging
-        count = 0    #TODO remove
         #looping through all infiles using the bookkeeping index json
         for infile_coord in self.book_keeping:
-            count += 1    #TODO remove
             index_pair = infile_coord.split("/")
             with open((self.rootDir + "/{}/{}").format(index_pair[0], index_pair[1])) as infile:
                 tree = BeautifulSoup(infile, 'html.parser').prettify()
@@ -95,8 +81,6 @@ class indexer():
                             new_post = self.Posting(doc_id_string.format(index_pair[0], index_pair[1]), 1, 0, self.book_keeping[infile_coord])
                         self.index[stem_token].append(new_post)
                         self.index[stem_token].sort(key=lambda x:x.tf_idf, reverse=True)            
-
-        self.record_dict(self.index, count)    #TODO remove
 
     
 
